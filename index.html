@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sleep Tracker</title>
 
-    <!-- Bootstrap 5 CDN -->
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body>
 
 <!-- Navbar -->
@@ -18,8 +19,62 @@
 </nav>
 
 <div class="container mt-4">
-    <h2>Welcome to Sleep Tracker</h2>
+
+    <h3 class="mb-4">Track Your Sleep</h3>
+
+    <!-- FORM -->
+    <form id="sleepForm">
+        <div class="mb-3">
+            <label class="form-label">Sleep Time</label>
+            <input type="time" id="sleepTime" class="form-control">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Wake Time</label>
+            <input type="time" id="wakeTime" class="form-control">
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            Save Sleep
+        </button>
+    </form>
+
+    <!-- RESULT CARD -->
+    <div class="mt-4">
+        <div class="card p-3">
+            <h5>Sleep Summary</h5>
+            <p id="resultText">No data yet</p>
+        </div>
+    </div>
+
 </div>
+
+<!-- JAVASCRIPT (IMPORTANT PART) -->
+<script>
+document.getElementById("sleepForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    let sleep = document.getElementById("sleepTime").value;
+    let wake = document.getElementById("wakeTime").value;
+
+    if (!sleep || !wake) {
+        alert("Please enter both times");
+        return;
+    }
+
+    let sleepDate = new Date("2024-01-01 " + sleep);
+    let wakeDate = new Date("2024-01-01 " + wake);
+
+    if (wakeDate < sleepDate) {
+        wakeDate.setDate(wakeDate.getDate() + 1);
+    }
+
+    let diff = (wakeDate - sleepDate) / (1000 * 60 * 60);
+
+    document.getElementById("resultText").innerText =
+        "You slept " + diff.toFixed(1) + " hours";
+});
+</script>
 
 </body>
 </html>
