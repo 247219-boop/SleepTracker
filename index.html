@@ -3,54 +3,76 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sleep Tracker</title>
+<title>Sleep Tracker Pro</title>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body {
-font-family: Arial;
+/* GLOBAL */
+* {
+transition: all 0.25s ease;
 }
 
-/* LOGIN SCREEN (NO SCROLL) */
+body {
+font-family: Arial;
+background: #f4f6fb;
+margin: 0;
+}
+
+/* LOGIN SCREEN */
 #loginScreen {
 height: 100vh;
 display: flex;
 align-items: center;
 justify-content: center;
-background: #f5f6fa;
 }
 
-/* MAIN APP (SCROLL ALLOWED) */
+/* APP */
 #app {
 display: none;
+opacity: 0;
+transform: translateY(20px);
+}
+
+/* PREMIUM CARDS */
+.card {
+border: none;
+border-radius: 14px;
+box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+.card:hover {
+transform: translateY(-3px);
 }
 
 /* DARK MODE */
 .dark {
 background: #121212;
-color: white;
+color: #fff;
 }
 
 .dark .card {
 background: #1e1e1e;
-color: white;
+color: #fff;
 }
 
-.card {
-border-radius: 12px;
+/* MOBILE */
+@media (max-width: 768px) {
+.row {
+flex-direction: column;
+}
 }
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN -->
 <div id="loginScreen">
 
-<div class="card p-4 shadow-sm text-center" style="width:320px;">
-<h3>🌙 Sleep Tracker</h3>
+<div class="card p-4 text-center" style="width:320px;">
+<h3>🌙 Sleep Tracker Pro</h3>
 <p class="text-muted">Enter your name</p>
 
 <input id="nameInput" class="form-control mb-3" placeholder="Your name">
@@ -58,16 +80,16 @@ border-radius: 12px;
 <button id="startBtn" class="btn btn-primary w-100">
 Start
 </button>
-</div>
 
 </div>
+</div>
 
-<!-- MAIN APP -->
+<!-- APP -->
 <div id="app">
 
 <!-- NAV -->
 <nav class="navbar navbar-dark bg-dark px-3">
-<span class="navbar-brand">🌙 Sleep Tracker</span>
+<span class="navbar-brand">🌙 Sleep Tracker Pro</span>
 <button class="btn btn-light btn-sm" onclick="toggleTheme()">🌓</button>
 </nav>
 
@@ -76,30 +98,30 @@ Start
 <!-- WELCOME -->
 <div class="card p-3 mb-3">
 <h4 id="welcomeText">Welcome</h4>
-<p id="quote" class="text-muted mb-0"></p>
+<p class="text-muted mb-0">Track your sleep, improve your life</p>
 </div>
 
 <!-- STATS -->
 <div class="row text-center mb-3">
 
 <div class="col-4">
-<div class="card p-2">
-😴 Avg<br>
-<b id="avg">0 hrs</b>
+<div class="card p-3">
+<div>😴 Average Sleep</div>
+<h5 id="avg">0 hrs</h5>
 </div>
 </div>
 
 <div class="col-4">
-<div class="card p-2">
-⭐ Score<br>
-<b id="score">0</b>
+<div class="card p-3">
+<div>⭐ Sleep Score</div>
+<h5 id="score">0</h5>
 </div>
 </div>
 
 <div class="col-4">
-<div class="card p-2">
-🔥 Streak<br>
-<b id="streak">0</b>
+<div class="card p-3">
+<div>🔥 Streak</div>
+<h5 id="streak">0</h5>
 </div>
 </div>
 
@@ -107,10 +129,18 @@ Start
 
 <!-- INPUT -->
 <div class="card p-3 mb-3">
+<h5>➕ Add Sleep Entry</h5>
+
 <form id="form">
+<label>Sleep Time</label>
 <input type="time" id="sleep" class="form-control mb-2">
+
+<label>Wake Time</label>
 <input type="time" id="wake" class="form-control mb-2">
-<button class="btn btn-primary w-100">Save</button>
+
+<button class="btn btn-primary w-100">
+Save Entry
+</button>
 </form>
 </div>
 
@@ -123,7 +153,16 @@ Start
 <!-- HISTORY -->
 <div class="card p-3 mb-3">
 <h5>📅 History</h5>
+
 <table class="table table-sm">
+<thead>
+<tr>
+<th>Date</th>
+<th>Sleep</th>
+<th>Wake</th>
+<th>Hours</th>
+</tr>
+</thead>
 <tbody id="history"></tbody>
 </table>
 </div>
@@ -141,32 +180,33 @@ Start
 let data = JSON.parse(localStorage.getItem("sleepData")) || [];
 let chart;
 
-const quotes = [
-"Sleep is power.",
-"Rest well, perform well.",
-"Good sleep = better life.",
-"Consistency beats everything.",
-"Your body heals while you sleep."
-];
-
-/* LOGIN */
+/* LOGIN ANIMATION */
 document.getElementById("startBtn").addEventListener("click", function () {
 
 let name = document.getElementById("nameInput").value.trim();
 
 if (!name) {
-alert("Please enter your name");
+alert("Enter your name");
 return;
 }
 
+document.getElementById("loginScreen").style.opacity = "0";
+
+setTimeout(() => {
 document.getElementById("loginScreen").style.display = "none";
-document.getElementById("app").style.display = "block";
+
+let app = document.getElementById("app");
+app.style.display = "block";
+
+setTimeout(() => {
+app.style.opacity = "1";
+app.style.transform = "translateY(0)";
+}, 50);
+
+}, 400);
 
 document.getElementById("welcomeText").innerText =
 "Welcome, " + name + " 👋";
-
-document.getElementById("quote").innerText =
-quotes[Math.floor(Math.random() * quotes.length)];
 
 });
 
@@ -188,7 +228,9 @@ values.push(d.hours);
 table.innerHTML += `
 <tr>
 <td>${d.date}</td>
-<td>${d.hours} hrs</td>
+<td>${d.sleep}</td>
+<td>${d.wake}</td>
+<td>${d.hours}</td>
 </tr>`;
 });
 
@@ -232,6 +274,8 @@ let hours = (b - a) / 3600000;
 
 data.push({
 date: new Date().toLocaleDateString(),
+sleep: s,
+wake: w,
 hours: hours.toFixed(1)
 });
 
@@ -242,11 +286,10 @@ update();
 
 /* DOWNLOAD */
 function downloadCSV() {
-
-let csv = "Date,Hours\n";
+let csv = "Date,Sleep,Wake,Hours\n";
 
 data.forEach(d => {
-csv += `${d.date},${d.hours}\n`;
+csv += `${d.date},${d.sleep},${d.wake},${d.hours}\n`;
 });
 
 let blob = new Blob([csv], { type: "text/csv" });
