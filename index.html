@@ -9,11 +9,32 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body {
-background: #f4f6f9;
-transition: 0.3s;
+/* FULL SCREEN APP FIX */
+html, body {
+height: 100%;
+margin: 0;
+overflow: hidden;
 }
 
+.screen {
+height: 100vh;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.hidden {
+display: none;
+}
+
+#app {
+height: 100vh;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+}
+
+/* DARK MODE */
 .dark {
 background: #121212;
 color: #f1f1f1;
@@ -24,18 +45,15 @@ background: #1e1e1e;
 color: #f1f1f1;
 }
 
+/* UI CLEANING */
 .hero {
 background: white;
-padding: 20px;
-border-radius: 15px;
-}
-
-.dark .hero {
-background: #1e1e1e;
+padding: 12px;
+border-radius: 12px;
 }
 
 .card {
-border-radius: 14px;
+border-radius: 12px;
 }
 </style>
 </head>
@@ -43,21 +61,21 @@ border-radius: 14px;
 <body>
 
 <!-- LOGIN SCREEN -->
-<div id="loginScreen" class="vh-100 d-flex align-items-center justify-content-center bg-light">
+<div id="loginScreen" class="screen bg-light">
     <div class="card p-4 shadow-sm text-center" style="width: 320px;">
-        <h4>🌙 Sleep Tracker</h4>
-        <p class="text-muted">Enter your name to continue</p>
+        <h3>🌙 Sleep Tracker</h3>
+        <p class="text-muted">Enter your name</p>
 
         <input id="nameInput" class="form-control mb-3" placeholder="Your name">
 
-        <button class="btn btn-primary w-100" onclick="startApp()">
+        <button id="startBtn" class="btn btn-primary w-100">
             Start
         </button>
     </div>
 </div>
 
-<!-- MAIN APP -->
-<div id="app" class="d-none">
+<!-- APP SCREEN -->
+<div id="app" class="hidden">
 
 <!-- NAV -->
 <nav class="navbar navbar-dark bg-dark px-3">
@@ -65,84 +83,54 @@ border-radius: 14px;
 <button class="btn btn-sm btn-light" onclick="toggleTheme()">🌓</button>
 </nav>
 
-<div class="container mt-4">
+<div class="container py-2">
 
-<!-- HERO -->
-<div class="hero shadow-sm mb-4">
-<h3 id="welcomeText">Welcome 👋</h3>
+<!-- HEADER -->
+<div class="hero shadow-sm mb-2">
+<h4 id="welcomeText">Welcome 👋</h4>
 <p id="quote" class="text-muted mb-0"></p>
 </div>
 
 <!-- STATS -->
-<div class="row g-3 mb-4">
+<div class="row g-2 mb-2 text-center">
 
-<div class="col-md-4">
-<div class="card p-3 text-center shadow-sm">
-<div>😴 Average</div>
-<h4 id="avg">0 hrs</h4>
-</div>
-</div>
-
-<div class="col-md-4">
-<div class="card p-3 text-center shadow-sm">
-<div>⭐ Score</div>
-<h4 id="score">0</h4>
+<div class="col-4">
+<div class="card p-2">
+😴<br><b id="avg">0</b>
 </div>
 </div>
 
-<div class="col-md-4">
-<div class="card p-3 text-center shadow-sm">
-<div>🔥 Streak</div>
-<h4 id="streak">0 days</h4>
+<div class="col-4">
+<div class="card p-2">
+⭐<br><b id="score">0</b>
+</div>
+</div>
+
+<div class="col-4">
+<div class="card p-2">
+🔥<br><b id="streak">0</b>
 </div>
 </div>
 
 </div>
 
-<!-- FORM -->
-<div class="card p-4 shadow-sm mb-4">
-<h5>➕ Add Sleep Entry</h5>
-
+<!-- INPUT -->
+<div class="card p-2 mb-2">
 <form id="form">
-<div class="row g-3 mt-2">
-
-<div class="col-md-6">
-<label class="form-label">Sleep Time</label>
-<input type="time" id="sleep" class="form-control">
-</div>
-
-<div class="col-md-6">
-<label class="form-label">Wake Time</label>
-<input type="time" id="wake" class="form-control">
-</div>
-
-</div>
-
-<button class="btn btn-primary w-100 mt-3">
-Save Entry
-</button>
+<input type="time" id="sleep" class="form-control mb-1">
+<input type="time" id="wake" class="form-control mb-1">
+<button class="btn btn-primary w-100 btn-sm">Save</button>
 </form>
 </div>
 
 <!-- CHART -->
-<div class="card p-3 shadow-sm mb-4">
-<h5>📊 Sleep Trend</h5>
+<div class="card p-2 mb-2">
 <canvas id="chart"></canvas>
 </div>
 
 <!-- HISTORY -->
-<div class="card p-3 shadow-sm">
-<h5>📅 History</h5>
-
-<table class="table table-striped">
-<thead>
-<tr>
-<th>Date</th>
-<th>Sleep</th>
-<th>Wake</th>
-<th>Hours</th>
-</tr>
-</thead>
+<div class="card p-2" style="max-height: 120px; overflow:auto;">
+<table class="table table-sm mb-0">
 <tbody id="history"></tbody>
 </table>
 </div>
@@ -156,32 +144,34 @@ let data = JSON.parse(localStorage.getItem("sleepData")) || [];
 let chart;
 
 const quotes = [
-"Sleep is the best meditation.",
-"Well-rested mind = better life.",
-"Your future depends on your sleep today.",
-"Good sleep is a superpower.",
-"Rest now, perform better tomorrow."
+"Sleep is power.",
+"Rest = success.",
+"Good sleep builds strong days.",
+"Your health starts with sleep.",
+"Consistency beats intensity."
 ];
 
-// FIXED LOGIN FUNCTION
-function startApp() {
-    let name = document.getElementById("nameInput").value.trim();
+// START BUTTON
+document.getElementById("startBtn").addEventListener("click", function () {
 
-    if (name === "") {
-        alert("Please enter your name");
-        return;
-    }
+let name = document.getElementById("nameInput").value.trim();
 
-    document.getElementById("loginScreen").style.display = "none";
-    document.getElementById("app").classList.remove("d-none");
-
-    document.getElementById("welcomeText").innerText =
-        "Welcome, " + name + " 👋";
-
-    document.getElementById("quote").innerText =
-        quotes[Math.floor(Math.random() * quotes.length)];
+if (!name) {
+alert("Please enter your name");
+return;
 }
 
+document.getElementById("loginScreen").classList.add("hidden");
+document.getElementById("app").classList.remove("hidden");
+
+document.getElementById("welcomeText").innerText =
+"Welcome, " + name + " 👋";
+
+document.getElementById("quote").innerText =
+quotes[Math.floor(Math.random() * quotes.length)];
+});
+
+// UPDATE UI
 function update() {
 
 let table = document.getElementById("history");
@@ -199,18 +189,15 @@ values.push(d.hours);
 table.innerHTML += `
 <tr>
 <td>${d.date}</td>
-<td>${d.sleep}</td>
-<td>${d.wake}</td>
-<td>${d.hours}</td>
+<td>${d.hours} hrs</td>
 </tr>`;
 });
 
 let avg = data.length ? total / data.length : 0;
 
-document.getElementById("avg").innerText = avg.toFixed(1) + " hrs";
-document.getElementById("score").innerText =
-Math.min(100, Math.round(avg / 8 * 100));
-document.getElementById("streak").innerText = data.length + " days";
+document.getElementById("avg").innerText = avg.toFixed(1);
+document.getElementById("score").innerText = Math.round(avg / 8 * 100);
+document.getElementById("streak").innerText = data.length;
 
 if (chart) chart.destroy();
 
@@ -219,7 +206,7 @@ type: "line",
 data: {
 labels,
 datasets: [{
-label: "Sleep Hours",
+label: "Sleep",
 data: values,
 borderColor: "#0d6efd",
 tension: 0.3
@@ -246,8 +233,6 @@ let hours = (b - a) / 3600000;
 
 data.push({
 date: new Date().toLocaleDateString(),
-sleep: s,
-wake: w,
 hours: hours.toFixed(1)
 });
 
@@ -256,6 +241,7 @@ localStorage.setItem("sleepData", JSON.stringify(data));
 update();
 });
 
+// THEME
 function toggleTheme() {
 document.body.classList.toggle("dark");
 }
