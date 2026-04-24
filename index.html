@@ -32,20 +32,32 @@ border-radius: 15px;
 
 .dark .hero {
 background: #1e1e1e;
-color: #f1f1f1;
 }
 
 .card {
 border-radius: 14px;
 }
-
-.stat {
-text-align: center;
-}
 </style>
 </head>
 
 <body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" class="vh-100 d-flex align-items-center justify-content-center bg-light">
+    <div class="card p-4 shadow-sm text-center" style="width: 320px;">
+        <h4>🌙 Sleep Tracker</h4>
+        <p class="text-muted">Enter your name to continue</p>
+
+        <input id="nameInput" class="form-control mb-3" placeholder="Your name">
+
+        <button class="btn btn-primary w-100" onclick="startApp()">
+            Start
+        </button>
+    </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" class="d-none">
 
 <!-- NAV -->
 <nav class="navbar navbar-dark bg-dark px-3">
@@ -57,29 +69,29 @@ text-align: center;
 
 <!-- HERO -->
 <div class="hero shadow-sm mb-4">
-<h3 id="welcome">👋 Welcome to your Sleep Tracker</h3>
-<p class="text-muted">Track your sleep and improve your health.</p>
+<h3 id="welcomeText">Welcome 👋</h3>
+<p id="quote" class="text-muted mb-0"></p>
 </div>
 
-<!-- STATS (HORIZONTAL FIXED) -->
+<!-- STATS -->
 <div class="row g-3 mb-4">
 
 <div class="col-md-4">
-<div class="card p-3 stat shadow-sm">
+<div class="card p-3 text-center shadow-sm">
 <div>😴 Average</div>
 <h4 id="avg">0 hrs</h4>
 </div>
 </div>
 
 <div class="col-md-4">
-<div class="card p-3 stat shadow-sm">
+<div class="card p-3 text-center shadow-sm">
 <div>⭐ Score</div>
 <h4 id="score">0</h4>
 </div>
 </div>
 
 <div class="col-md-4">
-<div class="card p-3 stat shadow-sm">
+<div class="card p-3 text-center shadow-sm">
 <div>🔥 Streak</div>
 <h4 id="streak">0 days</h4>
 </div>
@@ -87,7 +99,7 @@ text-align: center;
 
 </div>
 
-<!-- FORM (IMPROVED LOOK) -->
+<!-- FORM -->
 <div class="card p-4 shadow-sm mb-4">
 <h5>➕ Add Sleep Entry</h5>
 
@@ -106,7 +118,9 @@ text-align: center;
 
 </div>
 
-<button class="btn btn-primary w-100 mt-3">Save Entry</button>
+<button class="btn btn-primary w-100 mt-3">
+Save Entry
+</button>
 </form>
 </div>
 
@@ -134,10 +148,39 @@ text-align: center;
 </div>
 
 </div>
+</div>
 
 <script>
+
 let data = JSON.parse(localStorage.getItem("sleepData")) || [];
 let chart;
+
+const quotes = [
+"Sleep is the best meditation.",
+"Well-rested mind = better life.",
+"Your future depends on your sleep today.",
+"Good sleep is a superpower.",
+"Rest now, perform better tomorrow."
+];
+
+// FIXED LOGIN FUNCTION
+function startApp() {
+    let name = document.getElementById("nameInput").value.trim();
+
+    if (name === "") {
+        alert("Please enter your name");
+        return;
+    }
+
+    document.getElementById("loginScreen").style.display = "none";
+    document.getElementById("app").classList.remove("d-none");
+
+    document.getElementById("welcomeText").innerText =
+        "Welcome, " + name + " 👋";
+
+    document.getElementById("quote").innerText =
+        quotes[Math.floor(Math.random() * quotes.length)];
+}
 
 function update() {
 
@@ -165,10 +208,8 @@ table.innerHTML += `
 let avg = data.length ? total / data.length : 0;
 
 document.getElementById("avg").innerText = avg.toFixed(1) + " hrs";
-
 document.getElementById("score").innerText =
 Math.min(100, Math.round(avg / 8 * 100));
-
 document.getElementById("streak").innerText = data.length + " days";
 
 if (chart) chart.destroy();
@@ -187,6 +228,7 @@ tension: 0.3
 });
 }
 
+// FORM
 document.getElementById("form").addEventListener("submit", e => {
 e.preventDefault();
 
@@ -219,6 +261,7 @@ document.body.classList.toggle("dark");
 }
 
 update();
+
 </script>
 
 </body>
