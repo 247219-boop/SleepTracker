@@ -1,137 +1,225 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sleep Tracker</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sleep Tracker Pro</title>
 
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+    background: #f4f6f9;
+}
+
+.card {
+    border-radius: 16px;
+}
+</style>
 </head>
 
-<body class="bg-light">
+<body>
 
 <!-- NAVBAR -->
-<nav class="navbar navbar-dark bg-dark">
-    <div class="container-fluid">
-        <span class="navbar-brand">Sleep Tracker</span>
-    </div>
+<nav class="navbar navbar-dark bg-dark px-3">
+    <span class="navbar-brand">🌙 Sleep Tracker Pro</span>
 </nav>
 
 <div class="container mt-4">
 
-    <!-- INPUT FORM -->
-    <div class="card p-3 shadow-sm">
-        <h4 class="mb-3">Add Sleep Data</h4>
+<!-- HERO -->
+<div class="p-4 bg-white shadow-sm rounded-4 mb-4">
+    <h3 class="fw-bold">Sleep Intelligence Dashboard</h3>
+    <p class="text-muted">Track sleep, analyze patterns, and improve recovery.</p>
+</div>
 
-        <form id="sleepForm">
-            <div class="mb-3">
-                <label class="form-label">Sleep Time</label>
-                <input type="time" id="sleepTime" class="form-control">
-            </div>
+<!-- STATS -->
+<div class="row g-3">
 
-            <div class="mb-3">
-                <label class="form-label">Wake Time</label>
-                <input type="time" id="wakeTime" class="form-control">
-            </div>
+<div class="col-md-3">
+<div class="card p-3 shadow-sm">
+<h6>Avg Sleep</h6>
+<h4 id="avg">0 hrs</h4>
+</div>
+</div>
 
-            <button class="btn btn-primary w-100">Save Sleep</button>
-        </form>
-    </div>
+<div class="col-md-3">
+<div class="card p-3 shadow-sm">
+<h6>Sleep Score</h6>
+<h4 id="score">0</h4>
+</div>
+</div>
 
-    <!-- RESULT -->
-    <div class="card p-3 mt-3 shadow-sm">
-        <h5>Sleep Summary</h5>
-        <p id="resultText">No data yet</p>
-    </div>
+<div class="col-md-3">
+<div class="card p-3 shadow-sm">
+<h6>Streak</h6>
+<h4 id="streak">0 days</h4>
+</div>
+</div>
 
-    <!-- HISTORY -->
-    <div class="mt-4">
-        <h5>Sleep History</h5>
-
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Sleep</th>
-                    <th>Wake</th>
-                    <th>Hours</th>
-                </tr>
-            </thead>
-            <tbody id="historyTable"></tbody>
-        </table>
-    </div>
+<div class="col-md-3">
+<div class="card p-3 shadow-sm">
+<h6>Status</h6>
+<span id="status" class="badge bg-secondary">—</span>
+</div>
+</div>
 
 </div>
 
-<!-- SCRIPT -->
+<!-- FORM -->
+<div class="card p-4 mt-4 shadow-sm">
+<h5>Add Sleep Entry</h5>
+
+<form id="form">
+<div class="row g-3">
+<div class="col-md-6">
+<input type="time" id="sleep" class="form-control">
+</div>
+<div class="col-md-6">
+<input type="time" id="wake" class="form-control">
+</div>
+</div>
+
+<button class="btn btn-primary w-100 mt-3">Save Entry</button>
+</form>
+</div>
+
+<!-- CHART -->
+<div class="card p-3 mt-4 shadow-sm">
+<h5>Sleep Trend</h5>
+<canvas id="chart"></canvas>
+</div>
+
+<!-- INSIGHTS -->
+<div class="card p-3 mt-4 shadow-sm">
+<h5>AI Insight</h5>
+<p id="insight">No data yet.</p>
+</div>
+
+<!-- HISTORY -->
+<div class="mt-4">
+<h5>History</h5>
+
+<table class="table table-striped">
+<thead>
+<tr>
+<th>Date</th>
+<th>Sleep</th>
+<th>Wake</th>
+<th>Hours</th>
+</tr>
+</thead>
+<tbody id="history"></tbody>
+</table>
+</div>
+
+</div>
+
 <script>
 let data = JSON.parse(localStorage.getItem("sleepData")) || [];
+let chart;
 
-function loadHistory() {
-    let table = document.getElementById("historyTable");
-    table.innerHTML = "";
+// MAIN UPDATE FUNCTION
+function update() {
+let table = document.getElementById("history");
+table.innerHTML = "";
 
-    let total = 0;
+let total = 0;
+let labels = [];
+let values = [];
 
-    data.forEach(item => {
-        total += parseFloat(item.hours);
+data.forEach(d => {
+total += parseFloat(d.hours);
+labels.push(d.date);
+values.push(d.hours);
 
-        table.innerHTML += `
-            <tr>
-                <td>${item.date}</td>
-                <td>${item.sleep}</td>
-                <td>${item.wake}</td>
-                <td>${item.hours}</td>
-            </tr>
-        `;
-    });
-
-    if (data.length > 0) {
-        let avg = total / data.length;
-        document.getElementById("resultText").innerText =
-            "Weekly Average Sleep: " + avg.toFixed(1) + " hours";
-    }
-}
-
-document.getElementById("sleepForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-
-    let sleep = document.getElementById("sleepTime").value;
-    let wake = document.getElementById("wakeTime").value;
-
-    if (!sleep || !wake) {
-        alert("Please enter both times");
-        return;
-    }
-
-    let sleepDate = new Date("2024-01-01 " + sleep);
-    let wakeDate = new Date("2024-01-01 " + wake);
-
-    if (wakeDate < sleepDate) {
-        wakeDate.setDate(wakeDate.getDate() + 1);
-    }
-
-    let hours = (wakeDate - sleepDate) / (1000 * 60 * 60);
-
-    if (hours < 6) {
-        alert("⚠️ You are not getting enough sleep!");
-    }
-
-    let record = {
-        date: new Date().toLocaleDateString(),
-        sleep: sleep,
-        wake: wake,
-        hours: hours.toFixed(1)
-    };
-
-    data.push(record);
-    localStorage.setItem("sleepData", JSON.stringify(data));
-
-    loadHistory();
+table.innerHTML += `
+<tr>
+<td>${d.date}</td>
+<td>${d.sleep}</td>
+<td>${d.wake}</td>
+<td>${d.hours}</td>
+</tr>`;
 });
 
-loadHistory();
+// AVG
+let avg = data.length ? total / data.length : 0;
+document.getElementById("avg").innerText = avg.toFixed(1) + " hrs";
+
+// SCORE (out of 100)
+let score = Math.min(100, Math.round((avg / 8) * 100));
+document.getElementById("score").innerText = score;
+
+// STREAK
+document.getElementById("streak").innerText = data.length + " days";
+
+// STATUS
+let status = avg >= 7 ? "Healthy 😊" : "Poor ⚠️";
+let badge = document.getElementById("status");
+badge.innerText = status;
+badge.className = avg >= 7 ? "badge bg-success" : "badge bg-danger";
+
+// INSIGHT (SMART TEXT)
+let insight = "";
+if (avg === 0) {
+insight = "Start logging sleep to see insights.";
+} else if (avg < 6) {
+insight = "You are sleeping too little. Increase rest time.";
+} else if (avg < 7) {
+insight = "Almost healthy. Try sleeping 30-60 min earlier.";
+} else {
+insight = "Great sleep habits! Keep consistency.";
+}
+
+document.getElementById("insight").innerText = insight;
+
+// CHART
+if (chart) chart.destroy();
+
+chart = new Chart(document.getElementById("chart"), {
+type: "line",
+data: {
+labels: labels,
+datasets: [{
+label: "Sleep Hours",
+data: values,
+borderColor: "#0d6efd",
+tension: 0.3
+}]
+}
+});
+}
+
+// FORM
+document.getElementById("form").addEventListener("submit", e => {
+e.preventDefault();
+
+let sleep = document.getElementById("sleep").value;
+let wake = document.getElementById("wake").value;
+
+if (!sleep || !wake) return;
+
+let s = new Date("2024-01-01 " + sleep);
+let w = new Date("2024-01-01 " + wake);
+
+if (w < s) w.setDate(w.getDate() + 1);
+
+let hours = (w - s) / (1000 * 60 * 60);
+
+data.push({
+date: new Date().toLocaleDateString(),
+sleep,
+wake,
+hours: hours.toFixed(1)
+});
+
+localStorage.setItem("sleepData", JSON.stringify(data));
+
+update();
+});
+
+update();
 </script>
 
 </body>
